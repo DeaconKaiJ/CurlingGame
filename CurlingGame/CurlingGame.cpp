@@ -1,10 +1,8 @@
 // Curling Game.cpp : Defines the entry point for the console application.
 
 //Necessary Includes
-#include <stdlib.h>
-#include "stdafx.h"
-#include <glut.h>
 #include "simulation.h"
+#include <glut.h>
 #include <string.h>
 #include <thread>
 
@@ -39,8 +37,10 @@ float ballZ = 0.75;
 float theta = TWO_PI * float(initpos) / float(360);
 float x = r * cosf(theta) + ballX;//calculate the x component 
 float z = r * sinf(theta) + ballZ;//calculate the z component
-vec3 gCamPos(x, BALL_RADIUS + 0.5, z);
-vec3 gCamLookAt(0.0, BALL_RADIUS, 0.75);
+vec3 gCamPos(x, STONE_RADIUS + 0.5, z);
+vec3 gCamLookAt(0.0, STONE_RADIUS, 0.75);
+
+float* calcXZ= 0;
 
 //controls/scoreboard variables
 const char* input[7] = {"HitBall: ", "Change Slate: ","Add Power: ","Decrease Power: ","Move Left: ","Move Right: ","Add Spin: "};
@@ -51,16 +51,17 @@ bool notGame = false;
 //Function used to write text to the screen
 void writetoScreen(float x, float y, float z, char* string, int len) 
 {
+	//colour set
 	glColor3f(1.0, 1.0, 1.0);
+	//begin at this position
 	glRasterPos3f(x,y,z);
-	len = strlen(string);
+	//loop through all characters
 	for (int i = 0; i < len; i++) {
 		glutBitmapCharacter(GLUT_BITMAP_9_BY_15, string[i]);
 	}
-
 }
 
-//Function to apply a spin to the ball, done using multithreading
+//Function to apply a spin to the stone, done using multithreading
 void rotation(void)
 {
 	while (true)
@@ -95,7 +96,7 @@ void RenderScene(void) {
 	{
 		glPushMatrix();
 		if (i % 2) glColor3f(0.0, 0.0, 1.0); else glColor3f(1.0, 0.0, 0.0);
-		glTranslatef(gGame.cs.stones[i]->position(0), BALL_RADIUS, gGame.cs.stones[i]->position(1));
+		glTranslatef(gGame.cs.stones[i]->position(0), STONE_RADIUS, gGame.cs.stones[i]->position(1));
 		glutSolidSphere(gGame.cs.stones[i]->radius, 20, 20);
 		glPopMatrix();
 	}
@@ -119,10 +120,10 @@ void RenderScene(void) {
 	{	
 		glBegin(GL_QUADS);
 		glColor3f(1.0, 1.0, 1.0);
-		glVertex3f(TABLE_X+ gGame.slate[i].floor, -0.00001, TABLE_Z);
-		glVertex3f(TABLE_X + gGame.slate[i].floor, -0.00001, -TABLE_Z);
-		glVertex3f(-TABLE_X + gGame.slate[i].floor, -0.00001, -TABLE_Z);
-		glVertex3f(-TABLE_X + gGame.slate[i].floor, -0.00001, TABLE_Z);
+		glVertex3f(SLATE_X + gGame.slate[i].floor, -0.00001, SLATE_Z);
+		glVertex3f(SLATE_X + gGame.slate[i].floor, -0.00001, -SLATE_Z);
+		glVertex3f(-SLATE_X + gGame.slate[i].floor, -0.00001, -SLATE_Z);
+		glVertex3f(-SLATE_X + gGame.slate[i].floor, -0.00001, SLATE_Z);
 		glEnd();
 	}
 	
@@ -172,18 +173,18 @@ void RenderScene(void) {
 		//red team
 		sprintf_s(text, "Score Red: %d", gGame.slate[i].redScore);
 		len = strlen(text);
-		writetoScreen(gGame.slate[i].floor - 0.1, 0.25, -TABLE_Z, text, len);
+		writetoScreen(gGame.slate[i].floor - 0.1, 0.25, -SLATE_Z, text, len);
 
 		//blue team
 		sprintf_s(text, "Score Blue: %d", gGame.slate[i].blueScore);
 		len = strlen(text);
-		writetoScreen(gGame.slate[i].floor - 0.1, 0.20, -TABLE_Z, text,len);
+		writetoScreen(gGame.slate[i].floor - 0.1, 0.20, -SLATE_Z, text,len);
 	}
 
 	//Write controls/scoreboard
 	sprintf_s(text, "For Controls/Scoreboard: %s", "press s");
 	len = strlen(text);
-	writetoScreen(gGame.slate[activeSlate].floor - TABLE_X - 0.05, 0.10, -TABLE_Z, text, len);
+	writetoScreen(gGame.slate[activeSlate].floor - SLATE_X - 0.05, 0.10, -SLATE_Z, text, len);
 
 	//Write ScoreBoard
 	float x = 0.5;
@@ -193,7 +194,7 @@ void RenderScene(void) {
 		if ((i) % 8 == 0)y -= 0.1, x = 0.5;
 		sprintf_s(text, "Player%d score: %d", i + 1, gGame.player[i].score);
 		len = strlen(text);
-		writetoScreen((-TABLE_X * 3) + (x += 0.5), y, TABLE_Z + 0.5, text, len);
+		writetoScreen((-SLATE_X * 3) + (x += 0.5), y, SLATE_Z + 0.5, text, len);
 	}
 	//Write Controls
 	x = 0.4;
@@ -204,26 +205,26 @@ void RenderScene(void) {
 		if ((i) % 4 == 0)y -= 0.1, x = 0.4;
 		sprintf_s(text, "%s%s", input[i], inputMeaning[i]);
 		len = strlen(text);
-		writetoScreen((-TABLE_X * 3) + (x += 0.6), y, TABLE_Z + 0.5, text, len);
+		writetoScreen((-SLATE_X * 3) + (x += 0.6), y, SLATE_Z + 0.5, text, len);
 	}
 
 	//Write Power
 	int gcp = gGlidePower * 100;
 	sprintf_s(text, "Power: %d", gcp);
 	len = strlen(text);
-	writetoScreen(gGame.slate[activeSlate].floor - TABLE_X - 0.05, 0.20, -TABLE_Z, text, len);
+	writetoScreen(gGame.slate[activeSlate].floor - SLATE_X - 0.05, 0.20, -SLATE_Z, text, len);
 
 	//Write Spin
 	int spinNormalised = gGlideSpin * 100;
 	if (spinNormalised < 0)sprintf_s(text, "Rotate Right: %d", spinNormalised * -1), len = strlen(text);
 	if (spinNormalised > 0)sprintf_s(text, "Rotate Left: %d", spinNormalised), len = strlen(text);
 	if (spinNormalised == 0)sprintf_s(text, "Rotate: %d", spinNormalised), len = strlen(text);
-	writetoScreen(gGame.slate[activeSlate].floor + TABLE_X - 0.05, 0.20, -TABLE_Z, text, len);
+	writetoScreen(gGame.slate[activeSlate].floor + SLATE_X - 0.05, 0.20, -SLATE_Z, text, len);
 
 	//Write Current Player
 	sprintf_s(text, "CurrentPlayer: %d", currentPlayer+1);
 	len = strlen(text);
-	writetoScreen(gGame.slate[activeSlate].floor - TABLE_X - 0.05, 0.30, -TABLE_Z, text, len);
+	writetoScreen(gGame.slate[activeSlate].floor - SLATE_X - 0.05, 0.30, -SLATE_Z, text, len);
 
 	glFlush();
 	glutSwapBuffers();
@@ -374,8 +375,8 @@ void KeyboardUpFunc(unsigned char key, int x, int y)
 	case('s'):
 	{
 		notGame = true;
-		gCamPos(0) = 1.5; gCamPos(1) = 1.0; gCamPos(2) = -TABLE_Z;
-		gCamLookAt(0) = 1.5; gCamLookAt(1) = 0.5; gCamLookAt(2) = TABLE_Z;
+		gCamPos(0) = 1.5; gCamPos(1) = 1.0; gCamPos(2) = -SLATE_Z;
+		gCamLookAt(0) = 1.5; gCamLookAt(1) = 0.5; gCamLookAt(2) = SLATE_Z;
 	}
 	case('z'):
 	{
@@ -424,50 +425,59 @@ void UpdateScene(int ms)
 	{
 		//Left control
 		if (gGlideControl[0]) {
+			//alter angle
 			initpos -= 0.5;
 			gGlideAngle = -(initpos - 90) * TWO_PI / 360;
-			theta = TWO_PI * float(initpos) / float(360);
-			x = *gGame.calcX(gGame.cs.num - 1, theta, r);
-			z = *gGame.calcZ(gGame.cs.num - 1, theta, r);
-			gCamPos(0) = x;
-			gCamPos(1) = BALL_RADIUS + 0.5;
-			gCamPos(2) = z;
+
+			//call function to return new x z coordinates
+			calcXZ = gGame.calcCam(gGame.cs.num - 1, initpos, r);
+			gCamPos(0) = calcXZ[0];
+			gCamPos(1) = STONE_RADIUS + 0.5;
+			gCamPos(2) = calcXZ[1];
 		}
 		//Right control
 		if (gGlideControl[1]) {
+			//alter angle
 			initpos += 0.5;
 			gGlideAngle = -(initpos - 90) * TWO_PI / 360;
-			theta = TWO_PI * float(initpos) / float(360);
-			x = *gGame.calcX(gGame.cs.num - 1, theta, r);
-			z = *gGame.calcZ(gGame.cs.num - 1, theta, r);
-			gCamPos(0) = x;
-			gCamPos(1) = BALL_RADIUS + 0.5;
-			gCamPos(2) = z;
+
+			//call function to return new x z coordinates
+			calcXZ = gGame.calcCam(gGame.cs.num - 1, initpos, r);
+			gCamPos(0) = calcXZ[0];
+			gCamPos(1) = STONE_RADIUS + 0.5;
+			gCamPos(2) = calcXZ[1];
 		}
+
 		//Increase power
 		if (gGlideControl[2]) gGlidePower += ((gGlidePowerSpeed * ms) / 1000);
+
 		//Decrease power
 		if (gGlideControl[3]) gGlidePower -= ((gGlidePowerSpeed * ms) / 1000);
+
 		//Control power to stay within bounds
 		if (gGlidePower > gGlidePowerMax) gGlidePower = gGlidePowerMax;
 		if (gGlidePower < gGlidePowerMin) gGlidePower = gGlidePowerMin;
 
 		//Increase Spin
 		if (gGlideControl[4]) gGlideSpin += ((gGlidePowerSpeed * ms) / 1000);
+
 		//Decrease Spin
 		if (gGlideControl[5]) gGlideSpin -= ((gGlidePowerSpeed * ms) / 1000);
+
 		//Keep spin inside of bounds
 		if (gGlideSpin > gGlideSpinMax) gGlideSpin = gGlideSpinMax;
 		if (gGlideSpin < gGlideSpinMin) gGlideSpin = gGlideSpinMin;
 	}
+
 	//bool to decide gamestate
 	if (notGame == false)
 	{
 		//Look at active ball
 		gCamLookAt(0) = gGame.cs.stones[gGame.cs.num - 1]->position(0);
-		gCamLookAt(1) = BALL_RADIUS;
+		gCamLookAt(1) = STONE_RADIUS;
 		gCamLookAt(2) = gGame.cs.stones[gGame.cs.num - 1]->position(1);
 	}
+
 	//Test if ball has been hit and has stopped, to further play to new ball
 	if (gGame.cs.stones[gGame.cs.num - 1]->impTrue == true) if (gGame.AnyBallsMoving() == false) gGame.cs.AddBall(pos),
 		gGlideAngle = 0.0, gGlidePower = 0.25, gGlideSpin = 0.0, currentPlayer++;
@@ -485,7 +495,7 @@ void UpdateScene(int ms)
 		if (closestBallPtr[0] % 2 == 0) winningTeam = 0, gGame.slate[activeSlate].redScore += 1; else winningTeam = 1, gGame.slate[activeSlate].blueScore += 1;
 		
 		//Iterate thhough all balls
-		for (int i = 1; i < NUM_BALLS; i++)
+		for (int i = 1; i < NUM_STONES; i++)
 		{
 			//test if even for first team, add points until opposition ball is discovered
 			if (winningTeam == 0) if (closestBallPtr[i] % 2 == 0) gGame.slate[activeSlate].redScore += 1, playerScoreIndex++; else break;
@@ -503,7 +513,7 @@ void UpdateScene(int ms)
 		}
 
 		//position for fireworks
-		vec3 posf(gGame.slate[activeSlate].floor, BALL_RADIUS, 0);
+		vec3 posf(gGame.slate[activeSlate].floor, STONE_RADIUS, 0);
 
 		//add 50 fireworks for the team who won in the middle of the slate
 		for (int i = 0; i < 50; i++)
@@ -515,7 +525,7 @@ void UpdateScene(int ms)
 		gGame.cs.gReset(), gGame.cs.AddBall(pos),currentPlayer = NUM_PLAYERS_PER_SLATE * activeSlate;
 	}
 
-	//Call update function to table every x ms depening on variable, stage 1.5
+	//Call update function to table every x ms depening on variable
 	gGame.Update(ms, activeSlate);
 
 	//Set UpdateScene to timer to run every x ms

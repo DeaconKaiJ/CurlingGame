@@ -2,24 +2,37 @@
 	Simulation Header File
 -----------------------------------------------------------*/
 #include"vecmath.h"
+#include<stdlib.h>
+#include"stdafx.h"
 
 /*-----------------------------------------------------------
-	Macros
+	Game Macros
 -----------------------------------------------------------*/
-#define TABLE_X					(0.3f) 
-#define TABLE_Z					(1.2f)
-#define TABLE_Y					(0.1f)
-#define BALL_RADIUS				(0.05f)
-#define BALL_MASS				(0.05f)
+#define NUM_SLATES				(5)//Necessary to change when altering game
+#define NUM_PLAYERS_PER_SLATE	(6)//Necessary to change when altering game
+#define NUM_PLAYERS				(NUM_PLAYERS_PER_SLATE*NUM_SLATES)
+
+/*-----------------------------------------------------------
+	Slate Macros
+-----------------------------------------------------------*/
+#define SLATE_X					(0.3f) 
+#define SLATE_Z					(1.2f)
+#define NUM_SCOREGRID			(4)
+#define NUM_WALLS				(4)
+
+/*-----------------------------------------------------------
+	Stone Macros
+-----------------------------------------------------------*/
+#define STONE_RADIUS			(0.05f)
+#define STONE_MASS				(0.05f)
+#define NUM_STONES				(NUM_PLAYERS_PER_SLATE*2)	
+
+/*-----------------------------------------------------------
+	Misc Macros
+-----------------------------------------------------------*/
 #define TWO_PI					(6.2832f)
 #define	SIM_UPDATE_MS			(10)	
-#define NUM_WALLS				(4)
-#define NUM_SLATES				(5)
 #define MAX_PARTICLES			(50)
-#define NUM_SCOREGRID			(4)
-#define NUM_PLAYERS_PER_SLATE	(6)
-#define NUM_PLAYERS				(NUM_PLAYERS_PER_SLATE*NUM_SLATES)
-#define NUM_BALLS				(NUM_PLAYERS_PER_SLATE*2)	
 
 /*-----------------------------------------------------------
 	player class
@@ -29,7 +42,7 @@ class players {
 public:
 	int index;//Identifier for player
 	int score;//Score for player
-	//Constructor
+	//constructor
 	players() { index = playerIndexCnt++; score = 0; }
 };
 
@@ -41,8 +54,9 @@ class ScoreGrid
 	static int sgIndexCnt;
 public:
 	float radius;//Radius of scoringGrid
-	int index;
+	int index;//index of target
 	
+	//contructor
 	ScoreGrid()
 	{ 
 		index = sgIndexCnt++; radiusD(); 
@@ -72,13 +86,16 @@ class slateController
 {
 	static int slateIndexCnt;
 public:
-	walls* slateWalls[4];
-	int num;
-	int redScore;
-	int blueScore;
-	float floor;
+	walls* slateWalls[4]; //walls
+	int num; //act as index
+	int redScore; //score for red team
+	int blueScore; //score for blue team
+	float floor; //the middle point of the slate
+
+	//constructor
 	slateController() 
 	{ 
+		//make but set all to zero
 		for (int i = 0; i < NUM_WALLS; i++) slateWalls[i] = 0;
 		redScore = 0; blueScore = 0; floor = 0; num = slateIndexCnt++; SetupCushions(); 
 	}
@@ -93,15 +110,16 @@ class stone
 {
 	static int ballIndexCnt;
 public:
-	vec2	position;
-	vec2	velocity;
-	float	radius;
-	float	mass;
-	int		index;
-	bool	impTrue;
+	vec2	position; //position
+	vec2	velocity; //movement
+	float	radius; //radius
+	float	mass; //mass
+	int		index; //index
+	bool	impTrue; //has been hit?
 
-	stone() : position(0.0), velocity(0.0), radius(BALL_RADIUS),
-		mass(BALL_MASS) { index = ballIndexCnt++; impTrue = false; }
+	//contructor
+	stone() : position(0.0), velocity(0.0), radius(STONE_RADIUS),
+		mass(STONE_MASS) { index = ballIndexCnt++; impTrue = false; }
 
 	void ApplyImpulse(vec2 imp);
 	void ApplyFrictionForce(int ms);
@@ -119,17 +137,22 @@ public:
 class curlingStones
 {
 public:
-	stone* stones[NUM_BALLS];
-	bool gameEnd;
-	int num;
+	stone* stones[NUM_STONES]; //init stones
+	bool gameEnd; //has game ended?
+	int num; //act as index
+
+	//constructor
 	curlingStones()
 	{
-		for (int i = 0; i < NUM_BALLS; i++) stones[i] = 0;
+		for (int i = 0; i < NUM_STONES; i++) stones[i] = 0;
 		num = 0;
 		gameEnd = false;
+
+		//add a ball at starting location
 		vec2 pos(0.0, 0.75);
 		AddBall(pos);
 	}
+
 	void AddBall(const vec2& pos);
 	void gReset(void);
 };
@@ -140,9 +163,10 @@ public:
 class firework
 {
 public:
-	vec3 position;
-	vec3 velocity;
+	vec3 position; //position
+	vec3 velocity; //movement
 
+	//constructor
 	firework() { position = 0; velocity = 0; }
 	void update(int ms);
 };
@@ -150,15 +174,17 @@ public:
 class fireworkSet
 {
 public:
-	firework* fireworks[MAX_PARTICLES];
-	int num;
+	firework* fireworks[MAX_PARTICLES]; //init all fireworks
+	int num; //act as index
 
+	//constructor
 	fireworkSet()
 	{
 		for (int i = 0; i < MAX_PARTICLES; i++) fireworks[i] = 0;
 		num = 0;
 	}
 
+	//destructor
 	~fireworkSet()
 	{
 		for (int i = 0; i < MAX_PARTICLES; i++)
@@ -185,8 +211,7 @@ public:
 	void Update(int ms, int activeSlate);
 	bool AnyBallsMoving(void) const;
 	int* calculateScore(float x);
-	float* calcX(int currentPlayer, float theta, float r);
-	float* calcZ(int currentPlayer, float theta, float r);
+	float* calcCam(int currentPlayer, float theta, float r);
 };
 
 /*-----------------------------------------------------------

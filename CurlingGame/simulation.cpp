@@ -1,10 +1,8 @@
 /*-----------------------------------------------------------
 	Simulation Source File
 -----------------------------------------------------------*/
-#include"stdafx.h"
 #include"simulation.h"
 #include<stdio.h>
-#include<stdlib.h>
 #include <iostream>
 #include <algorithm>
 
@@ -14,9 +12,6 @@
 #define SMALL_VELOCITY		(0.01f)
 
 game gGame;
-
-static const float gRackPositionX[] = { 0.0f,0.0f,(BALL_RADIUS * 2.0f),(-BALL_RADIUS * 2.0f),(BALL_RADIUS * 4.0f) };
-static const float gRackPositionZ[] = { 0.5f,0.0f,(-BALL_RADIUS * 3.0f),(-BALL_RADIUS * 3.0f) };
 
 float gCoeffRestitution = 0.5f;
 float gCoeffFriction = 0.03f;
@@ -33,7 +28,7 @@ int players::playerIndexCnt = 0;
 int ScoreGrid::sgIndexCnt = 0;
 void ScoreGrid::radiusD(void)
 {
-	radius = BALL_RADIUS * (index + 1);
+	radius = STONE_RADIUS * (index + 1); //calculate radius based on index
 }
 
 /*-----------------------------------------------------------
@@ -41,7 +36,7 @@ void ScoreGrid::radiusD(void)
 -----------------------------------------------------------*/
 void walls::MakeNormal(void)
 {
-	//can do this in 2d
+	//normalise
 	vec2 temp = vertices[1] - vertices[0];
 	normal(0) = temp(1);
 	normal(1) = -temp(0);
@@ -50,6 +45,7 @@ void walls::MakeNormal(void)
 
 void walls::MakeCentre(void)
 {
+	//find center
 	centre = vertices[0];
 	centre += vertices[1];
 	centre /= 2.0;
@@ -62,35 +58,40 @@ int slateController::slateIndexCnt = 0;
 
 void slateController::SetupCushions(void)
 {
+	//calculate middle point of new slate
 	float moveRight;
 	float separate;
-	moveRight = TABLE_X * 2 * num;
+	moveRight = SLATE_X * 2 * num;
 	separate = 0.10 * num;
 	floor = moveRight + separate;
 
+	//Left
 	slateWalls[0] = new walls;
-	slateWalls[0]->vertices[0](0) = -TABLE_X + floor;
-	slateWalls[0]->vertices[0](1) = -TABLE_Z;
-	slateWalls[0]->vertices[1](0) = -TABLE_X + floor;
-	slateWalls[0]->vertices[1](1) = TABLE_Z;
+	slateWalls[0]->vertices[0](0) = -SLATE_X + floor;
+	slateWalls[0]->vertices[0](1) = -SLATE_Z;
+	slateWalls[0]->vertices[1](0) = -SLATE_X + floor;
+	slateWalls[0]->vertices[1](1) = SLATE_Z;
 
+	//Bottom
 	slateWalls[1] = new walls;
-	slateWalls[1]->vertices[0](0) = -TABLE_X + floor;
-	slateWalls[1]->vertices[0](1) = TABLE_Z;
-	slateWalls[1]->vertices[1](0) = TABLE_X + floor;
-	slateWalls[1]->vertices[1](1) = TABLE_Z;
+	slateWalls[1]->vertices[0](0) = -SLATE_X + floor;
+	slateWalls[1]->vertices[0](1) = SLATE_Z;
+	slateWalls[1]->vertices[1](0) = SLATE_X + floor;
+	slateWalls[1]->vertices[1](1) = SLATE_Z;
 
+	//Right
 	slateWalls[2] = new walls;
-	slateWalls[2]->vertices[0](0) = TABLE_X + floor;
-	slateWalls[2]->vertices[0](1) = TABLE_Z;
-	slateWalls[2]->vertices[1](0) = TABLE_X + floor;
-	slateWalls[2]->vertices[1](1) = -TABLE_Z;
+	slateWalls[2]->vertices[0](0) = SLATE_X + floor;
+	slateWalls[2]->vertices[0](1) = SLATE_Z;
+	slateWalls[2]->vertices[1](0) = SLATE_X + floor;
+	slateWalls[2]->vertices[1](1) = -SLATE_Z;
 
+	//Top
 	slateWalls[3] = new walls;
-	slateWalls[3]->vertices[0](0) = TABLE_X + floor;
-	slateWalls[3]->vertices[0](1) = -TABLE_Z;
-	slateWalls[3]->vertices[1](0) = -TABLE_X + floor;
-	slateWalls[3]->vertices[1](1) = -TABLE_Z;
+	slateWalls[3]->vertices[0](0) = SLATE_X + floor;
+	slateWalls[3]->vertices[0](1) = -SLATE_Z;
+	slateWalls[3]->vertices[1](0) = -SLATE_X + floor;
+	slateWalls[3]->vertices[1](1) = -SLATE_Z;
 
 	for (int i = 0; i < NUM_WALLS; i++)
 	{
@@ -106,6 +107,7 @@ int stone::ballIndexCnt = 0;
 
 void stone::ApplyImpulse(vec2 imp)
 {
+	//Apply movement, change has been hit to true
 	velocity = imp;
 	impTrue = true;
 }
@@ -215,14 +217,17 @@ void stone::HitBall(stone& b)
 -----------------------------------------------------------*/
 void curlingStones::AddBall(const vec2& pos)
 {
-	if (num >= NUM_BALLS) gameEnd = true;
-	if (num >= NUM_BALLS) return;
+	//Test if all stones have been made, start game end
+	if (num >= NUM_STONES) gameEnd = true;
+	if (num >= NUM_STONES) return;
+	//make new stone with given position
 	stones[num] = new stone;
 	stones[num]->position = pos;
 	num++;
 }
 void curlingStones::gReset(void)
 {
+	//delete all stones
 	int i = 0;
 	while (i < num)
 	{
@@ -240,6 +245,7 @@ void curlingStones::gReset(void)
  
 void firework::update(int ms)
 {
+	//update position and veloctity
 	position += (velocity * ms) / 1000.0;
 	velocity(1) -= (4.0 * ms) / 1000.0;
 }
@@ -249,7 +255,9 @@ void firework::update(int ms)
 -----------------------------------------------------------*/
 void fireworkSet::AddFirework(const vec3& pos)
 {
+	//test if num will exceed maximum particles
 	if (num >= MAX_PARTICLES) return;
+	//make new firework at position with random trajectory
 	fireworks[num] = new firework;
 	fireworks[num]->position = pos;
 
@@ -262,6 +270,7 @@ void fireworkSet::AddFirework(const vec3& pos)
 
 void fireworkSet::update(int ms)
 {
+	//delete firework if below the floor
 	int i = 0;
 	while (i < num)
 	{
@@ -300,7 +309,6 @@ void game::Update(int ms, int activeSlate)
 	fworks.update(ms);
 }
 
-
 bool game::AnyBallsMoving(void) const
 {
 	//return true if any ball has a non-zero velocity
@@ -314,37 +322,43 @@ bool game::AnyBallsMoving(void) const
 
 int* game::calculateScore(float x)
 {
-	static int returnBallID[NUM_BALLS];
-	int ballID[NUM_BALLS];
-	float allDist[NUM_BALLS];
-	float tempDist[NUM_BALLS];
+	//return array
+	static int returnBallID[NUM_STONES];
 
-	for (int i = 0; i < NUM_BALLS; i++)
+	//variables for calculating distances
+	int ballID[NUM_STONES];
+	float allDist[NUM_STONES];
+	float tempDist[NUM_STONES];
+
+	for (int i = 0; i < NUM_STONES; i++)
 	{
+		//find distance
 		float currentDistance = sqrt(pow(cs.stones[i]->position(0) - x, 2.0) + pow(cs.stones[i]->position(1) - -0.8, 2.0));
+		//append i and distance to respective arrays
 		ballID[i] = i, tempDist[i] = currentDistance, allDist[i] = currentDistance;
 	}
-	std::sort(tempDist, tempDist + NUM_BALLS);
-	for (int i = 0; i < NUM_BALLS; i++)
+
+	//sort distances
+	std::sort(tempDist, tempDist + NUM_STONES);
+
+	//itertate back through both arrays to find matching values and sort ids
+	for (int i = 0; i < NUM_STONES; i++)
 	{
-		for (int j = 0; j < NUM_BALLS; j++)
+		for (int j = 0; j < NUM_STONES; j++)
 		{
 			if (tempDist[i] == allDist[j]) returnBallID[i] = ballID[j];
 		}
 	}
+
 	return returnBallID;
 }
-
-float* game::calcX(int currentPlayer, float theta, float r)
+float* game::calcCam(int currentPlayer, float pos, float r)
 {
+	static float returnXZ[2];
 	float ballX = cs.stones[currentPlayer]->position(0);
-	float x = r * cosf(theta) + ballX;//calculate the x component 
-	return &x;
-}
-
-float* game::calcZ(int currentPlayer, float theta, float r)
-{
 	float ballZ = cs.stones[currentPlayer]->position(1);
-	float z = r * sinf(theta) + ballZ;//calculate the z component
-	return &z;
+	float theta = TWO_PI * float(pos) / float(360);
+	returnXZ[0] = r * cosf(theta) + ballX;//calculate the x component 
+	returnXZ[1] = r * sinf(theta) + ballZ;//calculate the z component
+	return returnXZ;
 }
