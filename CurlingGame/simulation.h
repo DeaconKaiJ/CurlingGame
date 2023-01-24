@@ -9,7 +9,7 @@
 	Game Macros
 -----------------------------------------------------------*/
 #define NUM_SLATES				(5)//Necessary to change when altering game
-#define NUM_PLAYERS_PER_SLATE	(6)//Necessary to change when altering game
+#define NUM_PLAYERS_PER_SLATE	(4)//Necessary to change when altering game
 #define NUM_PLAYERS				(NUM_PLAYERS_PER_SLATE*NUM_SLATES)
 
 /*-----------------------------------------------------------

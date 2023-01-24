@@ -349,7 +349,6 @@ int* game::calculateScore(float x)
 			if (tempDist[i] == allDist[j]) returnBallID[i] = ballID[j];
 		}
 	}
-
 	return returnBallID;
 }
 float* game::calcCam(int currentPlayer, float pos, float r)
