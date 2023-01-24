@@ -25,7 +25,7 @@ float gGlideSpinMin = -1.0;
 
 //Local multiplayer variables
 int currentPlayer = 0;
-int activeSlate = 0;
+int activeSheet = 0;
 int* closestBallPtr = 0;
 int winningTeam=0;
 
@@ -102,28 +102,28 @@ void RenderScene(void) {
 	}
 	
 	//Draw Slates
-	for (int i = 0; i < NUM_SLATES; i++)
+	for (int i = 0; i < NUM_SHEET; i++)
 	{
 		for (int j = 0; j < NUM_WALLS; j++)
 		{
 			glColor3f(0.0, 0.0, 1.0);
 			glBegin(GL_QUADS);
-			glVertex3f(gGame.slate[i].slateWalls[j]->vertices[0](0), -0.00001, gGame.slate[i].slateWalls[j]->vertices[0](1));
-			glVertex3f(gGame.slate[i].slateWalls[j]->vertices[0](0), 0.05, gGame.slate[i].slateWalls[j]->vertices[0](1));
-			glVertex3f(gGame.slate[i].slateWalls[j]->vertices[1](0), 0.05, gGame.slate[i].slateWalls[j]->vertices[1](1));
-			glVertex3f(gGame.slate[i].slateWalls[j]->vertices[1](0), -0.00001, gGame.slate[i].slateWalls[j]->vertices[1](1));
+			glVertex3f(gGame.sheet[i].sheetWalls[j]->vertices[0](0), -0.00001, gGame.sheet[i].sheetWalls[j]->vertices[0](1));
+			glVertex3f(gGame.sheet[i].sheetWalls[j]->vertices[0](0), 0.05, gGame.sheet[i].sheetWalls[j]->vertices[0](1));
+			glVertex3f(gGame.sheet[i].sheetWalls[j]->vertices[1](0), 0.05, gGame.sheet[i].sheetWalls[j]->vertices[1](1));
+			glVertex3f(gGame.sheet[i].sheetWalls[j]->vertices[1](0), -0.00001, gGame.sheet[i].sheetWalls[j]->vertices[1](1));
 			glEnd();
 		}
 	}
 	//Draw slate floors
-	for (int i = 0; i < NUM_SLATES; i++)
+	for (int i = 0; i < NUM_SHEET; i++)
 	{	
 		glBegin(GL_QUADS);
 		glColor3f(1.0, 1.0, 1.0);
-		glVertex3f(SLATE_X + gGame.slate[i].floor, -0.00001, SLATE_Z);
-		glVertex3f(SLATE_X + gGame.slate[i].floor, -0.00001, -SLATE_Z);
-		glVertex3f(-SLATE_X + gGame.slate[i].floor, -0.00001, -SLATE_Z);
-		glVertex3f(-SLATE_X + gGame.slate[i].floor, -0.00001, SLATE_Z);
+		glVertex3f(SLATE_X + gGame.sheet[i].floor, -0.00001, SLATE_Z);
+		glVertex3f(SLATE_X + gGame.sheet[i].floor, -0.00001, -SLATE_Z);
+		glVertex3f(-SLATE_X + gGame.sheet[i].floor, -0.00001, -SLATE_Z);
+		glVertex3f(-SLATE_X + gGame.sheet[i].floor, -0.00001, SLATE_Z);
 		glEnd();
 	}
 	
@@ -138,7 +138,7 @@ void RenderScene(void) {
 	}
 
 	//Draw scoring grid
-	for (int i = 0; i < NUM_SLATES; i++){
+	for (int i = 0; i < NUM_SHEET; i++){
 		//change the y on which the each ring is drawn to avoid problems
 		float y = 0.0001;
 		//iterate backwards so biggest ring is done first
@@ -150,7 +150,7 @@ void RenderScene(void) {
 			if (j == 0)glColor3f(1.0, 1.0, 1.0);
 			glBegin(GL_POLYGON);
 			int num_segments = 360;
-			float cx = gGame.slate[i].floor;
+			float cx = gGame.sheet[i].floor;
 			float cz = -0.8;
 			float r = gGame.targets[j].radius;
 			for (int k = 0; k < num_segments; k++) {
@@ -168,23 +168,23 @@ void RenderScene(void) {
 	int len;
 
 	//Write Teams
-	for (int i = 0; i < NUM_SLATES; i++)
+	for (int i = 0; i < NUM_SHEET; i++)
 	{
 		//red team
-		sprintf_s(text, "Score Red: %d", gGame.slate[i].redScore);
+		sprintf_s(text, "Score Red: %d", gGame.sheet[i].redScore);
 		len = strlen(text);
-		writetoScreen(gGame.slate[i].floor - 0.1, 0.25, -SLATE_Z, text, len);
+		writetoScreen(gGame.sheet[i].floor - 0.1, 0.25, -SLATE_Z, text, len);
 
 		//blue team
-		sprintf_s(text, "Score Blue: %d", gGame.slate[i].blueScore);
+		sprintf_s(text, "Score Blue: %d", gGame.sheet[i].blueScore);
 		len = strlen(text);
-		writetoScreen(gGame.slate[i].floor - 0.1, 0.20, -SLATE_Z, text,len);
+		writetoScreen(gGame.sheet[i].floor - 0.1, 0.20, -SLATE_Z, text,len);
 	}
 
 	//Write controls/scoreboard
 	sprintf_s(text, "For Controls/Scoreboard: %s", "press s");
 	len = strlen(text);
-	writetoScreen(gGame.slate[activeSlate].floor - SLATE_X - 0.05, 0.10, -SLATE_Z, text, len);
+	writetoScreen(gGame.sheet[activeSheet].floor - SLATE_X - 0.05, 0.10, -SLATE_Z, text, len);
 
 	//Write ScoreBoard
 	float x = 0.5;
@@ -205,26 +205,26 @@ void RenderScene(void) {
 		if ((i) % 4 == 0)y -= 0.1, x = 0.4;
 		sprintf_s(text, "%s%s", input[i], inputMeaning[i]);
 		len = strlen(text);
-		writetoScreen((-SLATE_X * 3) + (x += 0.6), y, SLATE_Z + 0.5, text, len);
+		writetoScreen((-SLATE_X * 3) + (x += 0.8), y, SLATE_Z + 0.5, text, len);
 	}
 
 	//Write Power
 	int gcp = gGlidePower * 100;
 	sprintf_s(text, "Power: %d", gcp);
 	len = strlen(text);
-	writetoScreen(gGame.slate[activeSlate].floor - SLATE_X - 0.05, 0.20, -SLATE_Z, text, len);
+	writetoScreen(gGame.sheet[activeSheet].floor - SLATE_X - 0.05, 0.20, -SLATE_Z, text, len);
 
 	//Write Spin
 	int spinNormalised = gGlideSpin * 100;
 	if (spinNormalised < 0)sprintf_s(text, "Rotate Right: %d", spinNormalised * -1), len = strlen(text);
 	if (spinNormalised > 0)sprintf_s(text, "Rotate Left: %d", spinNormalised), len = strlen(text);
 	if (spinNormalised == 0)sprintf_s(text, "Rotate: %d", spinNormalised), len = strlen(text);
-	writetoScreen(gGame.slate[activeSlate].floor + SLATE_X - 0.05, 0.20, -SLATE_Z, text, len);
+	writetoScreen(gGame.sheet[activeSheet].floor + SLATE_X - 0.05, 0.20, -SLATE_Z, text, len);
 
 	//Write Current Player
 	sprintf_s(text, "CurrentPlayer: %d", currentPlayer+1);
 	len = strlen(text);
-	writetoScreen(gGame.slate[activeSlate].floor - SLATE_X - 0.05, 0.30, -SLATE_Z, text, len);
+	writetoScreen(gGame.sheet[activeSheet].floor - SLATE_X - 0.05, 0.30, -SLATE_Z, text, len);
 
 	glFlush();
 	glutSwapBuffers();
@@ -330,36 +330,36 @@ void KeyboardUpFunc(unsigned char key, int x, int y)
 	case(48):
 	{	
 		notGame = false;
-		vec2 pos(gGame.slate[0].floor, 0.75);
-		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSlate = 0, currentPlayer = NUM_PLAYERS_PER_SLATE * activeSlate,
+		vec2 pos(gGame.sheet[0].floor, 0.75);
+		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSheet = 0, currentPlayer = NUM_PLAYERS_PER_SHEET * activeSheet,
 			gGame.cs.AddBall(pos), gGlideAngle = 0.0, gGlidePower = 0.25, gGlideSpin = 0.0; break;
 	}
 	case(49):
 	{
 		notGame = false;
-		vec2 pos(gGame.slate[1].floor, 0.75);
-		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSlate = 1, currentPlayer = NUM_PLAYERS_PER_SLATE * activeSlate,
+		vec2 pos(gGame.sheet[1].floor, 0.75);
+		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSheet = 1, currentPlayer = NUM_PLAYERS_PER_SHEET * activeSheet,
 			gGame.cs.AddBall(pos), gGlideAngle = 0.0, gGlidePower = 0.25, gGlideSpin = 0.0; break;
 	}
 	case(50):
 	{
 		notGame = false;
-		vec2 pos(gGame.slate[2].floor, 0.75);
-		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSlate = 2, currentPlayer = NUM_PLAYERS_PER_SLATE * activeSlate,
+		vec2 pos(gGame.sheet[2].floor, 0.75);
+		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSheet = 2, currentPlayer = NUM_PLAYERS_PER_SHEET * activeSheet,
 			gGame.cs.AddBall(pos), gGlideAngle = 0.0, gGlidePower = 0.25, gGlideSpin = 0.0; break;
 	}
 	case(51):
 	{	
 		notGame = false;
-		vec2 pos(gGame.slate[3].floor, 0.75);
-		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSlate = 3, currentPlayer = NUM_PLAYERS_PER_SLATE * activeSlate,
+		vec2 pos(gGame.sheet[3].floor, 0.75);
+		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSheet = 3, currentPlayer = NUM_PLAYERS_PER_SHEET * activeSheet,
 			gGame.cs.AddBall(pos), gGlideAngle = 0.0, gGlidePower = 0.25, gGlideSpin = 0.0; break;
 	}
 	case(52):
 	{
 		notGame = false;
-		vec2 pos(gGame.slate[4].floor, 0.75);
-		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSlate = 4, currentPlayer = NUM_PLAYERS_PER_SLATE * activeSlate,
+		vec2 pos(gGame.sheet[4].floor, 0.75);
+		if (gGame.AnyBallsMoving() == false)gGame.cs.gReset(), activeSheet = 4, currentPlayer = NUM_PLAYERS_PER_SHEET * activeSheet,
 			gGame.cs.AddBall(pos), gGlideAngle = 0.0, gGlidePower = 0.25, gGlideSpin = 0.0; break;
 	}
 	case('q'):
@@ -412,10 +412,10 @@ void ChangeSize(int w, int h) {
 //The main class used to update the game in ms
 void UpdateScene(int ms)
 {
-	vec2 pos(gGame.slate[activeSlate].floor, 0.75);
+	vec2 pos(gGame.sheet[activeSheet].floor, 0.75);
 
 	//Corrects current player variable to display correctly
-	if (currentPlayer > NUM_PLAYERS_PER_SLATE * (activeSlate + 1) - 1) currentPlayer -= NUM_PLAYERS_PER_SLATE;
+	if (currentPlayer > NUM_PLAYERS_PER_SHEET * (activeSheet + 1) - 1) currentPlayer -= NUM_PLAYERS_PER_SHEET;
 	
 	//tests if any balls are moving, if false activate play, else balls are moving, dont activate play
 	if (gGame.AnyBallsMoving() == false) gDoPlay = true; else gDoPlay = false;
@@ -486,34 +486,34 @@ void UpdateScene(int ms)
 	if (gGame.cs.gameEnd == true)
 	{
 		//Find distance of all balls and order them
-		closestBallPtr = gGame.calculateScore(gGame.slate[activeSlate].floor);
+		closestBallPtr = gGame.calculateScore(gGame.sheet[activeSheet].floor);
 
 		//Index used for finding individual scores
 		int playerScoreIndex = 1;
 
 		//Decides winning team
-		if (closestBallPtr[0] % 2 == 0) winningTeam = 0, gGame.slate[activeSlate].redScore += 1; else winningTeam = 1, gGame.slate[activeSlate].blueScore += 1;
+		if (closestBallPtr[0] % 2 == 0) winningTeam = 0, gGame.sheet[activeSheet].redScore += 1; else winningTeam = 1, gGame.sheet[activeSheet].blueScore += 1;
 		
 		//Iterate thhough all balls
 		for (int i = 1; i < NUM_STONES; i++)
 		{
 			//test if even for first team, add points until opposition ball is discovered
-			if (winningTeam == 0) if (closestBallPtr[i] % 2 == 0) gGame.slate[activeSlate].redScore += 1, playerScoreIndex++; else break;
+			if (winningTeam == 0) if (closestBallPtr[i] % 2 == 0) gGame.sheet[activeSheet].redScore += 1, playerScoreIndex++; else break;
 
 			//test if odd for second team, add points until opposition ball is discovered
-			if (winningTeam == 1) if (closestBallPtr[i] % 2 != 0) gGame.slate[activeSlate].blueScore += 1, playerScoreIndex++; else break;
+			if (winningTeam == 1) if (closestBallPtr[i] % 2 != 0) gGame.sheet[activeSheet].blueScore += 1, playerScoreIndex++; else break;
 		}
 
 		//iterate through player index
 		for (int i = 0; i < playerScoreIndex; i++)
 		{
 			//Applies scores to players based on ball id
-			if (activeSlate == 0) if (closestBallPtr[i] > NUM_PLAYERS_PER_SLATE - 1) gGame.player[closestBallPtr[i] + (NUM_PLAYERS_PER_SLATE * (activeSlate - 1))].score += 1; else gGame.player[closestBallPtr[i]].score += 1;
-			if (activeSlate != 0) if (closestBallPtr[i] > NUM_PLAYERS_PER_SLATE - 1) gGame.player[closestBallPtr[i] + (NUM_PLAYERS_PER_SLATE * (activeSlate - 1))].score += 1; else gGame.player[closestBallPtr[i] + (NUM_PLAYERS_PER_SLATE * (activeSlate))].score += 1;
+			if (activeSheet == 0) if (closestBallPtr[i] > NUM_PLAYERS_PER_SHEET - 1) gGame.player[closestBallPtr[i] + (NUM_PLAYERS_PER_SHEET * (activeSheet - 1))].score += 1; else gGame.player[closestBallPtr[i]].score += 1;
+			if (activeSheet != 0) if (closestBallPtr[i] > NUM_PLAYERS_PER_SHEET - 1) gGame.player[closestBallPtr[i] + (NUM_PLAYERS_PER_SHEET * (activeSheet - 1))].score += 1; else gGame.player[closestBallPtr[i] + (NUM_PLAYERS_PER_SHEET * (activeSheet))].score += 1;
 		}
 
 		//position for fireworks
-		vec3 posf(gGame.slate[activeSlate].floor, STONE_RADIUS, 0);
+		vec3 posf(gGame.sheet[activeSheet].floor, STONE_RADIUS, 0);
 
 		//add 50 fireworks for the team who won in the middle of the slate
 		for (int i = 0; i < 50; i++)
@@ -522,11 +522,11 @@ void UpdateScene(int ms)
 		} 
 
 		//reset game
-		gGame.cs.gReset(), gGame.cs.AddBall(pos),currentPlayer = NUM_PLAYERS_PER_SLATE * activeSlate;
+		gGame.cs.gReset(), gGame.cs.AddBall(pos),currentPlayer = NUM_PLAYERS_PER_SHEET * activeSheet;
 	}
 
 	//Call update function to table every x ms depening on variable
-	gGame.Update(ms, activeSlate);
+	gGame.Update(ms, activeSheet);
 
 	//Set UpdateScene to timer to run every x ms
 	glutTimerFunc(SIM_UPDATE_MS, UpdateScene, SIM_UPDATE_MS);

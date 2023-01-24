@@ -54,9 +54,9 @@ void walls::MakeCentre(void)
 /*-----------------------------------------------------------
 	slate class members
 -----------------------------------------------------------*/
-int slateController::slateIndexCnt = 0;
+int sheetController::sheetIndexCnt = 0;
 
-void slateController::SetupCushions(void)
+void sheetController::SetupCushions(void)
 {
 	//calculate middle point of new slate
 	float moveRight;
@@ -66,37 +66,37 @@ void slateController::SetupCushions(void)
 	floor = moveRight + separate;
 
 	//Left
-	slateWalls[0] = new walls;
-	slateWalls[0]->vertices[0](0) = -SLATE_X + floor;
-	slateWalls[0]->vertices[0](1) = -SLATE_Z;
-	slateWalls[0]->vertices[1](0) = -SLATE_X + floor;
-	slateWalls[0]->vertices[1](1) = SLATE_Z;
+	sheetWalls[0] = new walls;
+	sheetWalls[0]->vertices[0](0) = -SLATE_X + floor;
+	sheetWalls[0]->vertices[0](1) = -SLATE_Z;
+	sheetWalls[0]->vertices[1](0) = -SLATE_X + floor;
+	sheetWalls[0]->vertices[1](1) = SLATE_Z;
 
 	//Bottom
-	slateWalls[1] = new walls;
-	slateWalls[1]->vertices[0](0) = -SLATE_X + floor;
-	slateWalls[1]->vertices[0](1) = SLATE_Z;
-	slateWalls[1]->vertices[1](0) = SLATE_X + floor;
-	slateWalls[1]->vertices[1](1) = SLATE_Z;
+	sheetWalls[1] = new walls;
+	sheetWalls[1]->vertices[0](0) = -SLATE_X + floor;
+	sheetWalls[1]->vertices[0](1) = SLATE_Z;
+	sheetWalls[1]->vertices[1](0) = SLATE_X + floor;
+	sheetWalls[1]->vertices[1](1) = SLATE_Z;
 
 	//Right
-	slateWalls[2] = new walls;
-	slateWalls[2]->vertices[0](0) = SLATE_X + floor;
-	slateWalls[2]->vertices[0](1) = SLATE_Z;
-	slateWalls[2]->vertices[1](0) = SLATE_X + floor;
-	slateWalls[2]->vertices[1](1) = -SLATE_Z;
+	sheetWalls[2] = new walls;
+	sheetWalls[2]->vertices[0](0) = SLATE_X + floor;
+	sheetWalls[2]->vertices[0](1) = SLATE_Z;
+	sheetWalls[2]->vertices[1](0) = SLATE_X + floor;
+	sheetWalls[2]->vertices[1](1) = -SLATE_Z;
 
 	//Top
-	slateWalls[3] = new walls;
-	slateWalls[3]->vertices[0](0) = SLATE_X + floor;
-	slateWalls[3]->vertices[0](1) = -SLATE_Z;
-	slateWalls[3]->vertices[1](0) = -SLATE_X + floor;
-	slateWalls[3]->vertices[1](1) = -SLATE_Z;
+	sheetWalls[3] = new walls;
+	sheetWalls[3]->vertices[0](0) = SLATE_X + floor;
+	sheetWalls[3]->vertices[0](1) = -SLATE_Z;
+	sheetWalls[3]->vertices[1](0) = -SLATE_X + floor;
+	sheetWalls[3]->vertices[1](1) = -SLATE_Z;
 
 	for (int i = 0; i < NUM_WALLS; i++)
 	{
-		slateWalls[i]->MakeCentre();
-		slateWalls[i]->MakeNormal();
+		sheetWalls[i]->MakeCentre();
+		sheetWalls[i]->MakeNormal();
 	}
 }
 
@@ -295,7 +295,7 @@ void game::Update(int ms, int activeSlate)
 	{
 		for (int j = 0; j < NUM_WALLS; j++)
 		{			
-			gGame.cs.stones[i]->DoPlaneCollision(*gGame.slate[activeSlate].slateWalls[j]);
+			gGame.cs.stones[i]->DoPlaneCollision(*gGame.sheet[activeSlate].sheetWalls[j]);
 		}
 
 		for (int j = (i + 1); j < gGame.cs.num; j++)
@@ -353,11 +353,15 @@ int* game::calculateScore(float x)
 }
 float* game::calcCam(int currentPlayer, float pos, float r)
 {
+	//return array
 	static float returnXZ[2];
+	//find x z and theta
 	float ballX = cs.stones[currentPlayer]->position(0);
 	float ballZ = cs.stones[currentPlayer]->position(1);
 	float theta = TWO_PI * float(pos) / float(360);
+	//calculate x and z coordinates
 	returnXZ[0] = r * cosf(theta) + ballX;//calculate the x component 
 	returnXZ[1] = r * sinf(theta) + ballZ;//calculate the z component
+
 	return returnXZ;
 }

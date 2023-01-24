@@ -8,9 +8,9 @@
 /*-----------------------------------------------------------
 	Game Macros
 -----------------------------------------------------------*/
-#define NUM_SLATES				(5)//Necessary to change when altering game
-#define NUM_PLAYERS_PER_SLATE	(4)//Necessary to change when altering game
-#define NUM_PLAYERS				(NUM_PLAYERS_PER_SLATE*NUM_SLATES)
+#define NUM_SHEET				(5)//Necessary to change when altering game
+#define NUM_PLAYERS_PER_SHEET	(4)//Necessary to change when altering game
+#define NUM_PLAYERS				(NUM_PLAYERS_PER_SHEET*NUM_SHEET)
 
 /*-----------------------------------------------------------
 	Slate Macros
@@ -25,7 +25,7 @@
 -----------------------------------------------------------*/
 #define STONE_RADIUS			(0.05f)
 #define STONE_MASS				(0.05f)
-#define NUM_STONES				(NUM_PLAYERS_PER_SLATE*2)	
+#define NUM_STONES				(NUM_PLAYERS_PER_SHEET*2)	
 
 /*-----------------------------------------------------------
 	Misc Macros
@@ -82,22 +82,22 @@ public:
 /*-----------------------------------------------------------
 	slate class
 -----------------------------------------------------------*/
-class slateController
+class sheetController
 {
-	static int slateIndexCnt;
+	static int sheetIndexCnt;
 public:
-	walls* slateWalls[4]; //walls
+	walls* sheetWalls[4]; //walls
 	int num; //act as index
 	int redScore; //score for red team
 	int blueScore; //score for blue team
 	float floor; //the middle point of the slate
 
 	//constructor
-	slateController() 
+	sheetController()
 	{ 
 		//make but set all to zero
-		for (int i = 0; i < NUM_WALLS; i++) slateWalls[i] = 0;
-		redScore = 0; blueScore = 0; floor = 0; num = slateIndexCnt++; SetupCushions(); 
+		for (int i = 0; i < NUM_WALLS; i++) sheetWalls[i] = 0;
+		redScore = 0; blueScore = 0; floor = 0; num = sheetIndexCnt++; SetupCushions();
 	}
 
 	void SetupCushions(void);
@@ -203,7 +203,7 @@ public:
 class game
 {
 public:
-	slateController slate[NUM_SLATES];
+	sheetController sheet[NUM_SHEET];
 	ScoreGrid targets[NUM_SCOREGRID];
 	fireworkSet fworks;
 	curlingStones cs;
