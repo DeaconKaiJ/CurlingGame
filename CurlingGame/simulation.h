@@ -1,26 +1,25 @@
 /*-----------------------------------------------------------
-  Simulation Header File
-  -----------------------------------------------------------*/
+	Simulation Header File
+-----------------------------------------------------------*/
 #include"vecmath.h"
 
 /*-----------------------------------------------------------
 	Macros
 -----------------------------------------------------------*/
-#define TABLE_X			(0.3f) 
-#define TABLE_Z			(1.2f)
-#define TABLE_Y			(0.1f)
-#define BALL_RADIUS		(0.05f)
-#define BALL_MASS		(0.05f)
-#define TWO_PI			(6.2832f)
-#define	SIM_UPDATE_MS	(10)	
-#define NUM_CUSHIONS	(4)
-#define NUM_SLATES		(5)
-#define MAX_PARTICLES	(200)
-#define NUM_POCKETS		(4)
+#define TABLE_X					(0.3f) 
+#define TABLE_Z					(1.2f)
+#define TABLE_Y					(0.1f)
+#define BALL_RADIUS				(0.05f)
+#define BALL_MASS				(0.05f)
+#define TWO_PI					(6.2832f)
+#define	SIM_UPDATE_MS			(10)	
+#define NUM_WALLS				(4)
+#define NUM_SLATES				(5)
+#define MAX_PARTICLES			(50)
+#define NUM_SCOREGRID			(4)
 #define NUM_PLAYERS_PER_SLATE	(6)
-#define NUM_PLAYERS		(NUM_PLAYERS_PER_SLATE*NUM_SLATES)
-#define NUM_BALLS		(NUM_PLAYERS_PER_SLATE*2)	
-
+#define NUM_PLAYERS				(NUM_PLAYERS_PER_SLATE*NUM_SLATES)
+#define NUM_BALLS				(NUM_PLAYERS_PER_SLATE*2)	
 
 /*-----------------------------------------------------------
 	player class
@@ -28,33 +27,34 @@
 class players {
 	static int playerIndexCnt;
 public:
-	int index;
-	int score;
+	int index;//Identifier for player
+	int score;//Score for player
+	//Constructor
 	players() { index = playerIndexCnt++; score = 0; }
 };
 
 /*-----------------------------------------------------------
-	pocket class
+	target class
 -----------------------------------------------------------*/
-class pocket
+class ScoreGrid
 {
-	static int pocketIndexCnt;
+	static int sgIndexCnt;
 public:
-	float radius;
+	float radius;//Radius of scoringGrid
 	int index;
 	
-	pocket() 
+	ScoreGrid()
 	{ 
-		index = pocketIndexCnt++; radiusD(); 
+		index = sgIndexCnt++; radiusD(); 
 	}
 
 	void radiusD(void);
 };
 
 /*-----------------------------------------------------------
-	cushion class
+	walls class
 -----------------------------------------------------------*/
-class cushion
+class walls
 {
 public:
 	vec2	vertices[2]; //2d
@@ -65,18 +65,21 @@ public:
 	void MakeCentre(void);
 };
 
+/*-----------------------------------------------------------
+	slate class
+-----------------------------------------------------------*/
 class slateController
 {
 	static int slateIndexCnt;
 public:
-	cushion* slateWalls[4];
+	walls* slateWalls[4];
 	int num;
 	int redScore;
 	int blueScore;
 	float floor;
 	slateController() 
 	{ 
-		for (int i = 0; i < NUM_CUSHIONS; i++) slateWalls[i] = 0;
+		for (int i = 0; i < NUM_WALLS; i++) slateWalls[i] = 0;
 		redScore = 0; blueScore = 0; floor = 0; num = slateIndexCnt++; SetupCushions(); 
 	}
 
@@ -84,10 +87,9 @@ public:
 };
 
 /*-----------------------------------------------------------
-	ball class
+	stone class
 -----------------------------------------------------------*/
-
-class ball
+class stone
 {
 	static int ballIndexCnt;
 public:
@@ -98,31 +100,31 @@ public:
 	int		index;
 	bool	impTrue;
 
-	ball() : position(0.0), velocity(0.0), radius(BALL_RADIUS),
+	stone() : position(0.0), velocity(0.0), radius(BALL_RADIUS),
 		mass(BALL_MASS) { index = ballIndexCnt++; impTrue = false; }
 
 	void ApplyImpulse(vec2 imp);
 	void ApplyFrictionForce(int ms);
-	void DoPlaneCollision(const cushion& c);
-	void DoBallCollision(ball& b);
+	void DoPlaneCollision(const walls& c);
+	void DoBallCollision(stone& b);
 	void Update(int ms);
 
-	bool HasHitPlane(const cushion& c) const;
-	bool HasHitBall(const ball& b) const;
+	bool HasHitPlane(const walls& c) const;
+	bool HasHitBall(const stone& b) const;
 
-	void HitPlane(const cushion& c);
-	void HitBall(ball& b);
+	void HitPlane(const walls& c);
+	void HitBall(stone& b);
 };
 
-class ballController
+class curlingStones
 {
 public:
-	ball* balls[NUM_BALLS];
+	stone* stones[NUM_BALLS];
 	bool gameEnd;
 	int num;
-	ballController()
+	curlingStones()
 	{
-		for (int i = 0; i < NUM_BALLS; i++) balls[i] = 0;
+		for (int i = 0; i < NUM_BALLS; i++) stones[i] = 0;
 		num = 0;
 		gameEnd = false;
 		vec2 pos(0.0, 0.75);
@@ -133,53 +135,52 @@ public:
 };
 
 /*-----------------------------------------------------------
-	particle class
+	Firework class
 -----------------------------------------------------------*/
-class particle
+class firework
 {
 public:
 	vec3 position;
 	vec3 velocity;
 
-	particle() { position = 0; velocity = 0; }
+	firework() { position = 0; velocity = 0; }
 	void update(int ms);
 };
 
-class particleSet
+class fireworkSet
 {
 public:
-	particle* particles[MAX_PARTICLES];
+	firework* fireworks[MAX_PARTICLES];
 	int num;
 
-	particleSet()
+	fireworkSet()
 	{
-		for (int i = 0; i < MAX_PARTICLES; i++) particles[i] = 0;
+		for (int i = 0; i < MAX_PARTICLES; i++) fireworks[i] = 0;
 		num = 0;
 	}
 
-	~particleSet()
+	~fireworkSet()
 	{
 		for (int i = 0; i < MAX_PARTICLES; i++)
 		{
-			if (particles[i]) delete particles[i];
+			if (fireworks[i]) delete fireworks[i];
 		}
 	}
 
-	void AddParticle(const vec3& pos);
+	void AddFirework(const vec3& pos);
 	void update(int ms);
 };
 
-
 /*-----------------------------------------------------------
-	table class
+	game class
 -----------------------------------------------------------*/
-class table
+class game
 {
 public:
 	slateController slate[NUM_SLATES];
-	pocket pockets[NUM_POCKETS];
-	particleSet parts;
-	ballController bc;
+	ScoreGrid targets[NUM_SCOREGRID];
+	fireworkSet fworks;
+	curlingStones cs;
 	players player[NUM_PLAYERS];
 	void Update(int ms, int activeSlate);
 	bool AnyBallsMoving(void) const;
@@ -191,4 +192,4 @@ public:
 /*-----------------------------------------------------------
 	global table
 -----------------------------------------------------------*/
-extern table gTable;
+extern game gGame;
